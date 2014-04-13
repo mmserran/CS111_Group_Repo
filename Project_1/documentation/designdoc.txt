@@ -1,0 +1,66 @@
+
+CS111 ­ Spring 2014 
+Team  
+Mark, James C., Tyler, James K., Richard 
+ 
+Purpose 
+The purpose of this assignment is to create a working command line shell program.  
+ 
+Available Resources 
+We are given the following template code: 
+● lex.c 
+● hex.c 
+ 
+Requirements 
+Requirement 1  
+● call exit 
+Requirement 2  
+
+create child process 
+child runs command 
+parent waits for child to finish 
+if return val==abnormal, print error msg 
+Requirement 3  
+● create child process 
+● child runs command with arguments 
+● parent waits for child to exit 
+Requirement 4  
+● create child process 
+● child runs command with arguments 
+● parent does NOT wait for child to exit 
+Requirement 5  
+● create child process 
+● write output to file using freopen() 
+● parent waits for child to exit 
+Requirement 6  
+● create child process 
+● overwrite stdin to be file via freopen() 
+● parent waits for child to exit 
+ 
+Testing 
+We will create a Makefile with a ‘make test’ command. 
+
+Design
+
+The command-line input will first be parsed and split into separate, discrete commands.
+This is needed to implement piping, as piping is the only situation in the requirements
+that would have multiple programs on the same line of input.  As we parse the command, we will
+create a struct "program" for each program the user supplies, that has the following information:
+
+-The end index of the program arguments
+-A pointer to the source of program input (via a "<" ) or NULL
+-A pointer to the source of program output (via a ">" ) or NULL
+-A boolean flag for whether the program should run in the background
+-(opt) a boolean flag for piping?
+
+Once this information has been parsed from the command, it is passed off to a function which 
+does the standard fork and execve whathaveyous for creating a new process.  If there is redirection,
+the file descriptors are changed, and if it is set to run in the background, the parent process 
+does not sleep.  
+
+Functions
+
+main- calls parse once per program listed (the number of pipes + 1)
+parse- takes an individual program, populates the "program" struct, calls run
+run- fork and execve  
+
