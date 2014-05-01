@@ -1,5 +1,5 @@
 # Starter Makefile for prog1
-CC	= cc
+CC	= cc -ansi
 PROG	= shell
 
 ${PROG}:	shell.o lex.yy.o
