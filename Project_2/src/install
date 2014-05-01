@@ -1,0 +1,16 @@
+# Mark, James C., Tyler, James K., Richard
+# Project 2 - Install Script - see README.txt
+
+!/bin/bash
+
+# Overwrite original files with our modified files
+cp config.h /usr/include/minix/config.h
+cp schedproc.h /usr/src/servers/sched/schedproc.h
+cp schedule.c /usr/src/servers/sched/schedule.c
+
+# Go to the tools directory and recompile
+cd /usr/src/tools
+make install
+
+# Shutdown Minix for manual restart
+shutdown
