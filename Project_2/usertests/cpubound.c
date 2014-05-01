@@ -11,7 +11,8 @@ int increment(time_t usertime)
 	time_t now; 
 	time_t last_update_time;
 
-	for(time(&starttime), last_update_time = starttime; now - starttime < usertime ; time(&now))
+	time(&now);
+	for(time(&starttime), last_update_time = starttime; total < 2000000000; time(&now) )
 	{
 		total += 1;  
 		if ( last_update_time != now && (now - starttime) % 5 == 0 )
@@ -21,7 +22,7 @@ int increment(time_t usertime)
 			last_update_time = now;
 		}
 	}
-	printf("Process %d has finished. Total is %ld\n", getpid(), total);
+	printf("Process %d has finished in %ld seconds.\n", getpid(), now - starttime);
 	return total;  
 }
 
@@ -37,6 +38,5 @@ int main(int argc, char** argv)
 		}
 
 	}
-	printf("Running for %ld seconds...\n", usertime);
 	increment(usertime);
 }

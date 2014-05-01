@@ -13,7 +13,8 @@ int checksum(time_t usertime)
 	FILE* write_file;
 	time(&starttime);
 	last_update_time = starttime;
-	for (;;)
+	int i = 0;
+	for (; i < 10000; ++i)
 	{
 		read_file = fopen("testread", "r");
 		write_file = fopen("testwrite", "w");
@@ -34,13 +35,6 @@ int checksum(time_t usertime)
 				printf("IO bound process %d still running. %ld seconds in. Total is %ld\n", 
 					getpid(), now - starttime, total);
 				last_update_time = now;
-			}
-			if (now - starttime > usertime)
-			{
-				fclose(read_file);
-				fclose(write_file);
-				printf("Process %d has finished.\n", getpid());
-				return total;  
 			}
 
 		}
