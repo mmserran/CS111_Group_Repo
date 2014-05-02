@@ -36,7 +36,7 @@ PUBLIC int do_noquantum(message *m_ptr)
     register struct schedproc *rmp;
     int rv, proc_nr_n;
 
-    printf("HELLO      VER: 0.0.1\n");
+    printf("HELLO      VER: 0.0.3\n");
     if (sched_isokendpt(m_ptr->m_source, &proc_nr_n) != OK) {
         printf("SCHED: WARNING: got an invalid endpoint in OOQ msg %u.\n",
         m_ptr->m_source);
@@ -190,6 +190,7 @@ PUBLIC int do_nice(message *m_ptr)
 
     rmp = &schedproc[proc_nr_n];
     new_q = (unsigned) m_ptr->SCHEDULING_MAXPRIO;
+    printf("HELLO      %d", new_q);
     if (new_q >= NR_SCHED_QUEUES) {
         return EINVAL;
     }
@@ -244,9 +245,26 @@ PUBLIC void init_scheduling(void)
 /*===========================================================================*
  *                do_lottery                                                 *
  *===========================================================================*/
+ /* edited */
 PRIVATE void do_lottery(void)
 {
-    printf("TOTAL TICKETS =    %d\n", total_tickets);
+    struct schedproc *rmp;
+    int proc_nr;
+
+    int lucky;
+    int upper_bound;
+    unsigned temp;
+
+    upper_bound = total_tickets;
+    lucky = rand() % upper_bound + 1;
+
+    temp = 0;
+    for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
+        temp += rmp->tickets;
+    }
+
+    printf(" Loop Total     =    %d\n", temp);
+    printf(" Lottery winner =    %d\n", total_tickets);
 }
 
 /*===========================================================================*
