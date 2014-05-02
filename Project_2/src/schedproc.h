@@ -4,7 +4,7 @@
 #include <limits.h>
 
 /* EXTERN should be extern except in main.c, where we want to keep the struct */
-#ifdef _MAINroot
+#ifdef _MAIN
 #undef EXTERN
 #define EXTERN
 #endif
@@ -23,7 +23,6 @@ EXTERN struct schedproc {
 	unsigned max_priority;	/* this process' highest allowed priority */
 	unsigned priority;		/* the process' current priority */
 	unsigned time_slice;		/* this process's time slice */
-	unsigned tickets;	//edited
 } schedproc[NR_PROCS];
 
 /* Flag values */

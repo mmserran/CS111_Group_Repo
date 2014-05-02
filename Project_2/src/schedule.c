@@ -33,6 +33,7 @@ PUBLIC int do_noquantum(message *m_ptr)
     register struct schedproc *rmp;
     int rv, proc_nr_n;
 
+    printf("HELLOWORLD: do_noquantum\n");
     if (sched_isokendpt(m_ptr->m_source, &proc_nr_n) != OK) {
         printf("SCHED: WARNING: got an invalid endpoint in OOQ msg %u.\n",
         m_ptr->m_source);
@@ -58,6 +59,7 @@ PUBLIC int do_stop_scheduling(message *m_ptr)
     register struct schedproc *rmp;
     int rv, proc_nr_n;
 
+    printf("HELLOWORLD: do_stop_scheduling\n");
     /* check who can send you requests */
     if (!accept_message(m_ptr))
         return EPERM;
@@ -112,8 +114,6 @@ PUBLIC int do_start_scheduling(message *m_ptr)
          * quanum and priority are set explicitly rather than inherited 
          * from the parent */
         rmp->priority   = rmp->max_priority;
-        rmp->tickets    = 20;   //edited
-
         rmp->time_slice = (unsigned) m_ptr->SCHEDULING_QUANTUM;
         break;
         
@@ -126,8 +126,6 @@ PUBLIC int do_start_scheduling(message *m_ptr)
             return rv;
 
         rmp->priority = schedproc[parent_nr_n].priority;
-        rmp->tickets  = schedproc[parent_nr_n].tickets; //edited
-
         rmp->time_slice = schedproc[parent_nr_n].time_slice;
         break;
         
@@ -136,7 +134,6 @@ PUBLIC int do_start_scheduling(message *m_ptr)
         assert(0);
     }
 
-    total_tickets += rmp->tickets;  //edited
     /* Take over scheduling the process. The kernel reply message populates
      * the processes current priority and its time slice */
     if ((rv = sys_schedctl(0, rmp->endpoint, 0, 0)) != OK) {
@@ -234,9 +231,6 @@ PUBLIC void init_scheduling(void)
     balance_timeout = BALANCE_TIMEOUT * sys_hz();
     init_timer(&sched_timer);
     set_timer(&sched_timer, balance_timeout, balance_queues, 0);
-
-    total_tickets = 0;  //edited
-    last_winner = 0;    //edited
 }
 
 /*===========================================================================*
@@ -254,21 +248,14 @@ PRIVATE void balance_queues(struct timer *tp)
     int proc_nr;
     int rv;
 
-    srandom(last_winner);
-    int winner = total_tickets % random();
-    last_winner = winner;
-
-    int calculate_winner = 0;
-    for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++){
-        if (rmp->flags & IN_USE){
-            calculate_winner += rmp->tickets;
-            if (calculate_winner > tickets)
-            {
-                rmp->priority -= 1; //increase priority
-                return;
+    for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
+        if (rmp->flags & IN_USE) {
+            if (rmp->priority > rmp->max_priority) {
+                rmp->priority -= 1; /* increase priority */
+                schedule_process(rmp);
             }
-
         }
     }
+
     set_timer(&sched_timer, balance_timeout, balance_queues, 0);
 }
