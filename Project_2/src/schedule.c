@@ -13,9 +13,12 @@
 #include <minix/com.h>
 #include <machine/archtypes.h>
 #include "kernel/proc.h" /* for queue constants */
+#include <stdlib.h> /* edited */
+#include <time.h> /* edited */
 
 PRIVATE timer_t sched_timer;
 PRIVATE unsigned balance_timeout;
+PRIVATE unsigned total_tickets;
 
 #define BALANCE_TIMEOUT    5 /* how often to balance queues in seconds */
 
@@ -33,7 +36,7 @@ PUBLIC int do_noquantum(message *m_ptr)
     register struct schedproc *rmp;
     int rv, proc_nr_n;
 
-    printf("HELLOWORLD: do_noquantum\n");
+    printf("HELLO      VER: 0.0.1\n");
     if (sched_isokendpt(m_ptr->m_source, &proc_nr_n) != OK) {
         printf("SCHED: WARNING: got an invalid endpoint in OOQ msg %u.\n",
         m_ptr->m_source);
@@ -59,7 +62,6 @@ PUBLIC int do_stop_scheduling(message *m_ptr)
     register struct schedproc *rmp;
     int rv, proc_nr_n;
 
-    printf("HELLOWORLD: do_stop_scheduling\n");
     /* check who can send you requests */
     if (!accept_message(m_ptr))
         return EPERM;
@@ -114,6 +116,7 @@ PUBLIC int do_start_scheduling(message *m_ptr)
          * quanum and priority are set explicitly rather than inherited 
          * from the parent */
         rmp->priority   = rmp->max_priority;
+        rmp->tickets    = 20; /* edited */
         rmp->time_slice = (unsigned) m_ptr->SCHEDULING_QUANTUM;
         break;
         
@@ -126,6 +129,8 @@ PUBLIC int do_start_scheduling(message *m_ptr)
             return rv;
 
         rmp->priority = schedproc[parent_nr_n].priority;
+        rmp->tickets  = schedproc[parent_nr_n].tickets; /* edited */
+
         rmp->time_slice = schedproc[parent_nr_n].time_slice;
         break;
         
@@ -134,6 +139,7 @@ PUBLIC int do_start_scheduling(message *m_ptr)
         assert(0);
     }
 
+    total_tickets += rmp->tickets; /* edited */
     /* Take over scheduling the process. The kernel reply message populates
      * the processes current priority and its time slice */
     if ((rv = sys_schedctl(0, rmp->endpoint, 0, 0)) != OK) {
@@ -231,6 +237,16 @@ PUBLIC void init_scheduling(void)
     balance_timeout = BALANCE_TIMEOUT * sys_hz();
     init_timer(&sched_timer);
     set_timer(&sched_timer, balance_timeout, balance_queues, 0);
+
+    total_tickets = 0; /* edited */
+}
+
+/*===========================================================================*
+ *                do_lottery                                                 *
+ *===========================================================================*/
+PRIVATE void do_lottery(void)
+{
+    printf("TOTAL TICKETS =    %d\n", total_tickets);
 }
 
 /*===========================================================================*
@@ -247,6 +263,8 @@ PRIVATE void balance_queues(struct timer *tp)
     struct schedproc *rmp;
     int proc_nr;
     int rv;
+
+    do_lottery(); /* edited */
 
     for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
         if (rmp->flags & IN_USE) {

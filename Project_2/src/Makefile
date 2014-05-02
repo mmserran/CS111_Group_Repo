@@ -3,8 +3,11 @@
 
 TGZNAME  = Project2.tgz
 USER     = root
-REMOTE   = /documents/asg2
+REMOTE   = /asg2
 LOCAL    = /Users/Mark/Dev/C++/minix318/Project_2
+
+all:
+	grep 'VER:' schedule.c
 
 #
 # Utility functions.
