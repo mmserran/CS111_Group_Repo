@@ -255,25 +255,17 @@ PRIVATE void do_lottery(void)
     int lucky;
     int upper_bound;
     unsigned calculate_winner;
-    unsigned loop_total_tickets;
-
-
-    loop_total_tickets = 0;
-    for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
-        if (rmp->flags & IN_USE) {
-            loop_total_tickets += rmp->tickets;
-        }
-    }
 
     upper_bound = total_tickets;
     lucky = rand() % upper_bound + 1;
+    
     calculate_winner = 0;
     for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
         if (rmp->flags & IN_USE) {
             calculate_winner += rmp->tickets;
             if (calculate_winner > lucky) {
                 rmp->priority -= 1; /* increase priority */
-                printf("Process %d has won", proc_nr);
+                printf("Process %d has won\n", proc_nr);
                 schedule_process(rmp);
                 return;
             }
@@ -296,7 +288,6 @@ PRIVATE void balance_queues(struct timer *tp)
     struct schedproc *rmp;
     int proc_nr;
     int rv;
-
 
     do_lottery(); /* edited */
 /*

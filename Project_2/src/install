@@ -7,6 +7,7 @@
 cp config.h /usr/include/minix/config.h
 cp schedproc.h /usr/src/servers/sched/schedproc.h
 cp schedule.c /usr/src/servers/sched/schedule.c
+cp utility.c /usr/src/servers/pm/utility.c
 
 # Go to the tools directory and recompile
 cd /usr/src/tools
