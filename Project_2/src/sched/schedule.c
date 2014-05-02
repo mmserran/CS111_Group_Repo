@@ -176,8 +176,8 @@ PUBLIC int do_nice(message *m_ptr)
     struct schedproc *rmp;
     int rv;
     int proc_nr_n;
-    unsigned tmp, old_q, old_max_q;
-    double divisor, nice, tickets_to_add;
+    unsigned tickets_to_add, tmp, old_q, old_max_q;
+    double divisor, nice;
 
     /* check who can send you requests */
     if (!accept_message(m_ptr))
@@ -192,16 +192,22 @@ PUBLIC int do_nice(message *m_ptr)
     rmp = &schedproc[proc_nr_n];
     tmp = (unsigned) m_ptr->SCHEDULING_MAXPRIO;
     nice = (signed) tmp;
-    printf("nice = %d\n", nice);
     divisor = 20.0;
     tickets_to_add = (nice / divisor) * 100;
+    printf("tickets = %d\n", tickets_to_add);
 
     if (nice >= NR_SCHED_QUEUES) {
         return EINVAL;
     }
 
     printf("Old ticket amt: %d\n", rmp->tickets);
-    rmp->tickets += tickets_to_add;
+    if (((signed) tmp) > 0) {
+        printf("Adding\n");
+        rmp->tickets += tickets_to_add;
+    } else {
+        printf("Subtracting\n");
+        rmp->tickets -= tickets_to_add;
+    }
     printf("New ticket amt: %d\n", rmp->tickets);
 
     /* Store old values, in case we need to roll back the changes */
