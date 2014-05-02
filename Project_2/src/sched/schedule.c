@@ -190,6 +190,8 @@ PUBLIC int do_nice(message *m_ptr)
     }
 
     rmp = &schedproc[proc_nr_n];
+
+    /* begin edited */
     tmp = (unsigned) m_ptr->SCHEDULING_MAXPRIO;
     nice = (signed) tmp;
     divisor = 20.0;
@@ -204,18 +206,26 @@ PUBLIC int do_nice(message *m_ptr)
     if (((signed) tmp) > 0) {
         printf("Adding\n");
         rmp->tickets += tickets_to_add;
+        if (((signed) rmp->tickets) >= 100) {
+            rmp->tickets = 100;
+        }
     } else {
         printf("Subtracting\n");
         rmp->tickets -= tickets_to_add;
+        if (((signed) rmp->tickets) < 1) {
+            rmp->tickets = 1;
+        }
     }
     printf("New ticket amt: %d\n", rmp->tickets);
+
+    /* end edited */
 
     /* Store old values, in case we need to roll back the changes */
     old_q     = rmp->priority;
     old_max_q = rmp->max_priority;
 
     /* Update the proc entry and reschedule the process */
-    rmp->max_priority = rmp->priority = nice;
+    rmp->max_priority = rmp->priority = tmp;
 
     if ((rv = schedule_process(rmp)) != OK) {
         /* Something went wrong when rescheduling the process, roll
