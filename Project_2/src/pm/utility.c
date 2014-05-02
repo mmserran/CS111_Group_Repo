@@ -110,14 +110,15 @@ pid_t lpid;
 PUBLIC int nice_to_priority(int nice, unsigned* new_q)
 {
 	register struct mproc *rmp;
-	unsigned new_tickets;
+
+/*
 	if (nice < PRIO_MIN || nice > PRIO_MAX) return(EINVAL);
+*/
 
 	*new_q = MAX_USER_Q + (nice-PRIO_MIN) * (MIN_USER_Q-MAX_USER_Q+1) /
 	    (PRIO_MAX-PRIO_MIN+1);
 	
-	new_tickets = (nice / 40) * 200;
-	printf("Hello  NEW NICE =        %d\n", nice);
+
 	if (*new_q < MAX_USER_Q) *new_q = MAX_USER_Q;	/* shouldn't happen */
 	if (*new_q > MIN_USER_Q) *new_q = MIN_USER_Q;	/* shouldn't happen */
 

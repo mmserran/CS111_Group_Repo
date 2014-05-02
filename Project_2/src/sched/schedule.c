@@ -36,7 +36,7 @@ PUBLIC int do_noquantum(message *m_ptr)
     register struct schedproc *rmp;
     int rv, proc_nr_n;
 
-    printf("HELLO      VER: 0.0.5\n");
+    printf("HELLO      VER: 0.0.6\n");
     if (sched_isokendpt(m_ptr->m_source, &proc_nr_n) != OK) {
         printf("SCHED: WARNING: got an invalid endpoint in OOQ msg %u.\n",
         m_ptr->m_source);
@@ -176,7 +176,8 @@ PUBLIC int do_nice(message *m_ptr)
     struct schedproc *rmp;
     int rv;
     int proc_nr_n;
-    unsigned nice, old_q, old_max_q;
+    unsigned tmp, old_q, old_max_q;
+    double divisor, nice, tickets_to_add;
 
     /* check who can send you requests */
     if (!accept_message(m_ptr))
@@ -189,11 +190,18 @@ PUBLIC int do_nice(message *m_ptr)
     }
 
     rmp = &schedproc[proc_nr_n];
-    nice = (unsigned) m_ptr->SCHEDULING_MAXPRIO;
+    tmp = (unsigned) m_ptr->SCHEDULING_MAXPRIO;
+    nice = (signed) tmp;
+    printf("nice = %d\n", nice);
+    divisor = 20.0;
+    tickets_to_add = (nice / divisor) * 100;
+
     if (nice >= NR_SCHED_QUEUES) {
         return EINVAL;
     }
-    rmp->tickets += nice;
+
+    printf("Old ticket amt: %d\n", rmp->tickets);
+    rmp->tickets += tickets_to_add;
     printf("New ticket amt: %d\n", rmp->tickets);
 
     /* Store old values, in case we need to roll back the changes */
@@ -265,7 +273,7 @@ PRIVATE void do_lottery(void)
             calculate_winner += rmp->tickets;
             if (calculate_winner > lucky) {
                 rmp->priority -= 1; /* increase priority */
-                printf("Process %d has won\n", proc_nr);
+                /* printf("Process %d has won\n", proc_nr); */
                 schedule_process(rmp);
                 return;
             }

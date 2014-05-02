@@ -6,12 +6,13 @@
 # Overwrite original files with our modified files
 cp config.h /usr/include/minix/config.h
 cp schedproc.h /usr/src/servers/sched/schedproc.h
-cp schedule.c /usr/src/servers/sched/schedule.c
-cp utility.c /usr/src/servers/pm/utility.c
+cp sched/schedule.c /usr/src/servers/sched/schedule.c
+cp pm/schedule.c /usr/src/servers/pm/schedule.c
+cp pm/utility.c /usr/src/servers/pm/utility.c
 
 # Go to the tools directory and recompile
 cd /usr/src/tools
 make install
 
 # Shutdown Minix for manual restart
-#shutdown
+shutdown
