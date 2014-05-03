@@ -14,7 +14,7 @@ int increment(time_t usertime)
 	time(&starttime);
 	time(&now);
 
-	for(i = 0; i < 80000000; ++i)
+	for(i = 0; i < 8000000; ++i)
 	{
 		total += 1;  
 		if ( last_update_time != now)
