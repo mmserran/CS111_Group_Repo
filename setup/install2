@@ -9,9 +9,9 @@ cp sched/schedule.c /usr/src/servers/sched/schedule.c
 cp pm/schedule.c /usr/src/servers/pm/schedule.c
 
 # Go to the tools directory and recompile
-#cd /usr/src/tools
-#make install
+cd /usr/src/tools
+make clean install
 
 # Go to the tools directory and recompile
-#cd /usr/src/releasetools
-#make hdboot
+cd /usr/src/releasetools
+make hdboot

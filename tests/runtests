@@ -1,4 +1,2 @@
-./iobound 20 &
-./iobound 20 &
-./cpubound 20 &
-./cpubound 20 &
+nice -n15 ./cpubound &
+nice -n5 ./cpubound &

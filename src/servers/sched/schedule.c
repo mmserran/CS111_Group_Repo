@@ -57,27 +57,34 @@ static void balance_queues(struct timer *tp);
 static unsigned cpu_proc[CONFIG_MAX_CPUS];
 
 
-static void do_lottery(){
+static int do_lottery(){
 
 	unsigned int potential_winning_tickets;
 	unsigned int winning_ticket;
 	struct schedproc *rmp;
+	int rv;
 
 	srandom(last_winning_ticket);
 	potential_winning_tickets = total_tickets * max_tickets;
 	winning_ticket = random() % potential_winning_tickets;
 
 	rmp = &schedproc[(winning_ticket % NR_PROCS)];
-
-	if ((winning_ticket / NR_PROCS) + 1)
+	printf("Process %d won!\n", winning_ticket % NR_PROCS); 
+	if ((winning_ticket / NR_PROCS) + 1 <= rmp->tickets)
 	 {
+	 	printf("And it was successful!\n");
 	 	rmp->priority -= 1;
-	 	schedule_process_local(rmp);
+		if ((rv = schedule_process_local(rmp)) != OK) {
+			return rv;
+		}
+		last_winner->priority += 1;
 	 	last_winner = rmp;
 	 } 
+
+	 return OK;
 }
 
-
+/* HELLO */
 static void pick_cpu(struct schedproc * proc)
 {
 #ifdef CONFIG_SMP
@@ -135,9 +142,6 @@ int do_noquantum(message *m_ptr)
 
 	do_lottery();
 
-	if ((rv = schedule_process_local(rmp)) != OK) {
-		return rv;
-	}
 	return OK;
 }
 
@@ -181,6 +185,8 @@ int do_start_scheduling(message *m_ptr)
 	/* we can handle two kinds of messages here */
 	assert(m_ptr->m_type == SCHEDULING_START || 
 		m_ptr->m_type == SCHEDULING_INHERIT);
+
+	printf("Started scheduling a process!\n");
 
 	/* check who can send you requests */
 	if (!accept_message(m_ptr))
@@ -312,11 +318,32 @@ int do_nice(message *m_ptr)
 	nice = new_q; /* edited */
 
     tickets_to_add = (nice / (double) 20) * 100;
-    printf("tickets = %d\n", tickets_to_add);
-
+    printf("asdfasdf2tickets = %d\n", tickets_to_add);
+    total_tickets += tickets_to_add - rmp->tickets;
+    rmp->tickets = tickets_to_add;
 	if (new_q >= NR_SCHED_QUEUES) {
 		return EINVAL;
 	}
+
+
+/*
+ 	if ( (new_q) > 0) {
+        printf("Adding\n");
+        rmp->tickets += tickets_to_add;
+        if (((signed) rmp->tickets) >= 100) {
+            rmp->tickets = 100;
+        }
+    } else {
+        printf("Subtracting\n");
+        rmp->tickets -= tickets_to_add;
+        if (((signed) rmp->tickets) < 1) {
+            rmp->tickets = 1;
+        }
+    }
+*/
+
+
+
 
 	/* Store old values, in case we need to roll back the changes */
 	old_q     = rmp->priority;
@@ -384,7 +411,7 @@ void init_scheduling(void)
 	last_winning_ticket = 0;
 	last_winner = NULL;
 	max_tickets = 20;
-	printf("I am the motherfucking USERPSACE SCHEDULER.\n");
+	printf("I AM THE MONTHERFUCKING USERPSACE SCHEDULER.\n");
 }
 
 /*===========================================================================*
