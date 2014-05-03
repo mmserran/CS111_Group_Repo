@@ -294,7 +294,8 @@ int do_nice(message *m_ptr)
 	struct schedproc *rmp;
 	int rv;
 	int proc_nr_n;
-	unsigned new_q, old_q, old_max_q;
+	unsigned tickets_to_add, new_q, old_q, old_max_q;
+	int nice;
 
 	/* check who can send you requests */
 	if (!accept_message(m_ptr))
@@ -308,6 +309,11 @@ int do_nice(message *m_ptr)
 
 	rmp = &schedproc[proc_nr_n];
 	new_q = (unsigned) m_ptr->SCHEDULING_MAXPRIO;
+	nice = new_q; /* edited */
+
+    tickets_to_add = (nice / (double) 20) * 100;
+    printf("tickets = %d\n", tickets_to_add);
+
 	if (new_q >= NR_SCHED_QUEUES) {
 		return EINVAL;
 	}

@@ -1,0 +1,10 @@
+# Mark, James C., Tyler, James K., Richard
+# Project 2 - Install Script - see README.txt
+
+#!/bin/bash
+
+# Overwrite original files with our modified files
+cp src/servers/sched/schedproc.h /root/asg2/sched/schedproc.h
+cp src/servers/sched/schedule.c /root/asg2/sched/schedule.c
+cp src/servers/pm/schedule.c /root/asg2/pm/schedule.c
+cp setup/install /root/asg2/install
