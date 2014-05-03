@@ -73,6 +73,7 @@ static void do_lottery(){
 	 {
 	 	rmp->priority -= 1;
 	 	schedule_process_local(rmp);
+	 	last_winner = rmp;
 	 } 
 }
 
@@ -393,16 +394,24 @@ static void balance_queues(struct timer *tp)
 {
 	struct schedproc *rmp;
 	int proc_nr;
-	int local_max;
+	unsigned int local_max;
+
+	local_max = 0;
 
 	for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
 		if (rmp->flags & IN_USE) {
+
+			if (local_max < rmp->tickets)
+				local_max = rmp->tickets;
+
 			if (rmp->priority > rmp->max_priority) {
 				rmp->priority -= 1; /* increase priority */
 				schedule_process_local(rmp);
 			}
 		}
 	}
+
+	max_tickets = local_max;
 
 	set_timer(&sched_timer, balance_timeout, balance_queues, 0);
 }
