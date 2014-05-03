@@ -13,9 +13,17 @@
 #include <minix/com.h>
 #include <machine/archtypes.h>
 #include "kernel/proc.h" /* for queue constants */
+#include <stdlib.h>
+#include <stdio.h>
 
 static timer_t sched_timer;
 static unsigned balance_timeout;
+static unsigned total_tickets;
+static unsigned last_winning_ticket;
+static unsigned max_tickets;
+
+static struct schedproc *last_winner;
+
 
 #define BALANCE_TIMEOUT	5 /* how often to balance queues in seconds */
 
@@ -47,6 +55,27 @@ static void balance_queues(struct timer *tp);
 #define is_system_proc(p)	((p)->parent == RS_PROC_NR)
 
 static unsigned cpu_proc[CONFIG_MAX_CPUS];
+
+
+static void do_lottery(){
+
+	unsigned int potential_winning_tickets;
+	unsigned int winning_ticket;
+	struct schedproc *rmp;
+
+	srandom(last_winning_ticket);
+	potential_winning_tickets = total_tickets * max_tickets;
+	winning_ticket = random() % potential_winning_tickets;
+
+	rmp = &schedproc[(winning_ticket % NR_PROCS)];
+
+	if ((winning_ticket / NR_PROCS) + 1)
+	 {
+	 	rmp->priority -= 1;
+	 	schedule_process_local(rmp);
+	 } 
+}
+
 
 static void pick_cpu(struct schedproc * proc)
 {
@@ -103,6 +132,8 @@ int do_noquantum(message *m_ptr)
 		rmp->priority += 1; /* lower priority */
 	}
 
+	do_lottery();
+
 	if ((rv = schedule_process_local(rmp)) != OK) {
 		return rv;
 	}
@@ -128,6 +159,8 @@ int do_stop_scheduling(message *m_ptr)
 	}
 
 	rmp = &schedproc[proc_nr_n];
+	total_tickets -= rmp->tickets;
+
 #ifdef CONFIG_SMP
 	cpu_proc[rmp->cpu]--;
 #endif
@@ -222,6 +255,8 @@ int do_start_scheduling(message *m_ptr)
 			rmp->endpoint, rv);
 		return rv;
 	}
+	rmp->tickets = 20;
+	total_tickets += 20;
 	rmp->flags = IN_USE;
 
 	/* Schedule the process, giving it some quantum */
@@ -318,6 +353,7 @@ static int schedule_process(struct schedproc * rmp, unsigned flags)
 	else
 		new_cpu = -1;
 
+
 	if ((err = sys_schedule(rmp->endpoint, new_prio,
 		new_quantum, new_cpu)) != OK) {
 		printf("PM: An error occurred when trying to schedule %d: %d\n",
@@ -337,6 +373,11 @@ void init_scheduling(void)
 	balance_timeout = BALANCE_TIMEOUT * sys_hz();
 	init_timer(&sched_timer);
 	set_timer(&sched_timer, balance_timeout, balance_queues, 0);
+	total_tickets = 0;
+	last_winning_ticket = 0;
+	last_winner = NULL;
+	max_tickets = 20;
+	printf("I am the motherfucking USERPSACE SCHEDULER.\n");
 }
 
 /*===========================================================================*
@@ -352,6 +393,7 @@ static void balance_queues(struct timer *tp)
 {
 	struct schedproc *rmp;
 	int proc_nr;
+	int local_max;
 
 	for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
 		if (rmp->flags & IN_USE) {
@@ -364,3 +406,4 @@ static void balance_queues(struct timer *tp)
 
 	set_timer(&sched_timer, balance_timeout, balance_queues, 0);
 }
+
