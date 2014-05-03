@@ -57,40 +57,14 @@ static void balance_queues(struct timer *tp);
 static unsigned cpu_proc[CONFIG_MAX_CPUS];
 
 
-static int do_lottery(){
-
-	unsigned int potential_winning_tickets;
-	unsigned int winning_ticket;
-	struct schedproc *rmp;
-	int rv;
-
-	srandom(last_winning_ticket);
-	potential_winning_tickets = total_tickets * max_tickets;
-	winning_ticket = random() % potential_winning_tickets;
-
-	rmp = &schedproc[(winning_ticket % NR_PROCS)];
-	printf("Process %d won!\n", winning_ticket % NR_PROCS); 
-	if ((winning_ticket / NR_PROCS) + 1 <= rmp->tickets)
-	 {
-	 	printf("And it was successful!\n");
-	 	rmp->priority -= 1;
-		if ((rv = schedule_process_local(rmp)) != OK) {
-			return rv;
-		}
-		last_winner->priority += 1;
-	 	last_winner = rmp;
-	 } 
-
-	 return OK;
-}
-
-/* HELLO */
+/* VER: 0.2 */
 static void pick_cpu(struct schedproc * proc)
 {
 #ifdef CONFIG_SMP
 	unsigned cpu, c;
 	unsigned cpu_load = (unsigned) -1;
 	
+	printf("Is pick_cpu called?!\n");
 	if (machine.processors_count == 1) {
 		proc->cpu = machine.bsp_id;
 		return;
@@ -121,6 +95,36 @@ static void pick_cpu(struct schedproc * proc)
 }
 
 /*===========================================================================*
+ *				do_lottery				     *
+ *===========================================================================*/
+static int do_lottery(){
+
+	unsigned int potential_winning_tickets;
+	unsigned int winning_ticket;
+	struct schedproc *rmp;
+	int rv;
+
+	srandom(last_winning_ticket);
+	potential_winning_tickets = total_tickets * max_tickets;
+	winning_ticket = random() % potential_winning_tickets;
+
+	rmp = &schedproc[(winning_ticket % NR_PROCS)];
+	printf("Process %d won!\n", winning_ticket % NR_PROCS); 
+	if ((winning_ticket / NR_PROCS) + 1 <= rmp->tickets)
+	 {
+	 	printf("And it was successful!\n");
+	 	rmp->priority -= 1;
+		last_winner->priority += 1;
+	 	last_winner = rmp;
+	 } 
+	if ((rv = schedule_process_local(rmp)) != OK) {
+		return rv;
+	}
+
+	 return OK;
+}
+
+/*===========================================================================*
  *				do_noquantum				     *
  *===========================================================================*/
 
@@ -129,6 +133,7 @@ int do_noquantum(message *m_ptr)
 	register struct schedproc *rmp;
 	int rv, proc_nr_n;
 
+	printf("HELLO         do_noquantum\n");
 	if (sched_isokendpt(m_ptr->m_source, &proc_nr_n) != OK) {
 		printf("SCHED: WARNING: got an invalid endpoint in OOQ msg %u.\n",
 		m_ptr->m_source);
@@ -140,7 +145,12 @@ int do_noquantum(message *m_ptr)
 		rmp->priority += 1; /* lower priority */
 	}
 
-	do_lottery();
+	if ((rv = schedule_process_local(rmp)) != OK) {
+		return rv;
+	}
+
+
+	/*do_lottery();*/ 
 
 	return OK;
 }
@@ -153,6 +163,7 @@ int do_stop_scheduling(message *m_ptr)
 	register struct schedproc *rmp;
 	int proc_nr_n;
 
+	printf("Stopped scheduling a process!\n");
 	/* check who can send you requests */
 	if (!accept_message(m_ptr))
 		return EPERM;
@@ -192,6 +203,7 @@ int do_start_scheduling(message *m_ptr)
 	if (!accept_message(m_ptr))
 		return EPERM;
 
+	printf("Check 1\n");
 	/* Resolve endpoint to proc slot. */
 	if ((rv = sched_isemtyendpt(m_ptr->SCHEDULING_ENDPOINT, &proc_nr_n))
 			!= OK) {
@@ -199,6 +211,7 @@ int do_start_scheduling(message *m_ptr)
 	}
 	rmp = &schedproc[proc_nr_n];
 
+	printf("Check 2\n");
 	/* Populate process slot */
 	rmp->endpoint     = m_ptr->SCHEDULING_ENDPOINT;
 	rmp->parent       = m_ptr->SCHEDULING_PARENT;
@@ -207,6 +220,7 @@ int do_start_scheduling(message *m_ptr)
 		return EINVAL;
 	}
 
+	printf("Check 3\n");
 	/* Inherit current priority and time slice from parent. Since there
 	 * is currently only one scheduler scheduling the whole system, this
 	 * value is local and we assert that the parent endpoint is valid */
@@ -228,13 +242,19 @@ int do_start_scheduling(message *m_ptr)
 #endif
 	}
 	
+	printf("Check 4\n");
 	switch (m_ptr->m_type) {
 
 	case SCHEDULING_START:
+
+		printf("Check 4a - SCHEDULING_START\n");
 		/* We have a special case here for system processes, for which
 		 * quanum and priority are set explicitly rather than inherited 
 		 * from the parent */
 		rmp->priority   = rmp->max_priority;
+		printf("Priority of new process %d\n", rmp->priority);
+		/* rmp->tickets = 20; */
+
 		rmp->time_slice = (unsigned) m_ptr->SCHEDULING_QUANTUM;
 		break;
 		
@@ -242,19 +262,32 @@ int do_start_scheduling(message *m_ptr)
 		/* Inherit current priority and time slice from parent. Since there
 		 * is currently only one scheduler scheduling the whole system, this
 		 * value is local and we assert that the parent endpoint is valid */
+		printf("Check 4b - SCHEDULING_INHERIT\n");
+		printf("does this get executed?\n");
 		if ((rv = sched_isokendpt(m_ptr->SCHEDULING_PARENT,
-				&parent_nr_n)) != OK)
+				&parent_nr_n)) != OK){
+			printf("Priority of new process %d\n", rmp->priority);
+
+			printf("sched_isokendpt failed\n");
 			return rv;
+		}
+		printf("After sched_isokendpt()\n");
 
 		rmp->priority = schedproc[parent_nr_n].priority;
+		printf("After rmp->priority is set\n");
+		/* rmp->tickets = schedproc[parent_nr_n].tickets; */
+
 		rmp->time_slice = schedproc[parent_nr_n].time_slice;
+		printf("After rmp->time_slice is set\n");
 		break;
 		
 	default: 
+		printf("Check 4c - default (not reachable)\n");
 		/* not reachable */
 		assert(0);
 	}
 
+	printf("Check 5\n");
 	/* Take over scheduling the process. The kernel reply message populates
 	 * the processes current priority and its time slice */
 	if ((rv = sys_schedctl(0, rmp->endpoint, 0, 0, 0)) != OK) {
@@ -266,6 +299,7 @@ int do_start_scheduling(message *m_ptr)
 	total_tickets += 20;
 	rmp->flags = IN_USE;
 
+	printf("Check 6\n");
 	/* Schedule the process, giving it some quantum */
 	pick_cpu(rmp);
 	while ((rv = schedule_process(rmp, SCHEDULE_CHANGE_ALL)) == EBADCPU) {
@@ -289,6 +323,7 @@ int do_start_scheduling(message *m_ptr)
 
 	m_ptr->SCHEDULING_SCHEDULER = SCHED_PROC_NR;
 
+	printf("Check End\n");
 	return OK;
 }
 
@@ -317,7 +352,7 @@ int do_nice(message *m_ptr)
 	new_q = (unsigned) m_ptr->SCHEDULING_MAXPRIO;
 	nice = new_q; /* edited */
 
-    tickets_to_add = (nice / (double) 20) * 100;
+    tickets_to_add = (nice / (double) 20) * 100 + rmp->tickets;
     printf("asdfasdf2tickets = %d\n", tickets_to_add);
     total_tickets += tickets_to_add - rmp->tickets;
     rmp->tickets = tickets_to_add;
@@ -370,6 +405,7 @@ static int schedule_process(struct schedproc * rmp, unsigned flags)
 	int err;
 	int new_prio, new_quantum, new_cpu;
 
+	printf("schedule_process has been called\n");
 	pick_cpu(rmp);
 
 	if (flags & SCHEDULE_CHANGE_PRIO)
@@ -411,7 +447,7 @@ void init_scheduling(void)
 	last_winning_ticket = 0;
 	last_winner = NULL;
 	max_tickets = 20;
-	printf("I AM THE MONTHERFUCKING USERPSACE SCHEDULER.\n");
+	printf("I AM THE MOTHERFUCKING USERPSACE SCHEDULER.\n");
 }
 
 /*===========================================================================*
@@ -429,14 +465,16 @@ static void balance_queues(struct timer *tp)
 	int proc_nr;
 	unsigned int local_max;
 
-	local_max = 0;
+	printf("is this called balance_queues\n");
+
+/*	local_max = 0;*/
 
 	for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
 		if (rmp->flags & IN_USE) {
-
+/*
 			if (local_max < rmp->tickets)
 				local_max = rmp->tickets;
-
+*/
 			if (rmp->priority > rmp->max_priority) {
 				rmp->priority -= 1; /* increase priority */
 				schedule_process_local(rmp);
@@ -444,8 +482,9 @@ static void balance_queues(struct timer *tp)
 		}
 	}
 
-	max_tickets = local_max;
+	/*max_tickets = local_max;*/
 
 	set_timer(&sched_timer, balance_timeout, balance_queues, 0);
+
 }
 

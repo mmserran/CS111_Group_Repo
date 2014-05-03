@@ -7,6 +7,6 @@
 cp src/servers/sched/schedproc.h /root/asg2/sched/schedproc.h
 cp src/servers/sched/schedule.c /root/asg2/sched/schedule.c
 cp src/servers/pm/schedule.c /root/asg2/pm/schedule.c
-cp setup/install /root/asg2/install
+cp setup/install2 /root/asg2/install2
 
 cp -r tests /root/asg2/
