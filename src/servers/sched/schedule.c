@@ -119,9 +119,9 @@ static int do_lottery(){
 			//printf("count = %d ", count);
 			if (count > winning_ticket){
 				//printf("lottery winner (proc_nr) = %d\n", proc_nr);
-				rmp->priority -=1;
+				rmp->priority = 6;
 				if (last_winner != NULL){
-					last_winner->priority += 1;
+					last_winner->priority = 7;
 					if ((rv = schedule_process_local(last_winner)) != OK) {
 		 				printf("Scheduling winning process failed.\n");
 						return rv;
@@ -159,9 +159,17 @@ int do_noquantum(message *m_ptr)
 	}
 
 	rmp = &schedproc[proc_nr_n];
-	if (rmp->priority < MIN_USER_Q) {
-		rmp->priority += 1; /* lower priority */
+	if (rmp == last_winner){
+		printf("this guy was totally the last winner\n");
 	}
+	else{
+		printf("who is this fucker?\n");
+	}
+	/*
+	if (rmp->priority < MIN_USER_Q) {
+		rmp->priority += 1; /* lower priority 
+	}
+
 /*
 	if ((rv = schedule_process_local(rmp)) != OK) {
 		return rv;
@@ -198,6 +206,8 @@ int do_stop_scheduling(message *m_ptr)
 	cpu_proc[rmp->cpu]--;
 #endif
 	rmp->flags = 0; /*&= ~IN_USE;*/
+
+	do_lottery();
 
 	return OK;
 }
@@ -297,7 +307,9 @@ int do_start_scheduling(message *m_ptr)
 			rmp->endpoint, rv);
 		return rv;
 	}
-	//rmp->priority = 7;
+	if (rmp->max_priority > 7){
+		rmp->priority = 7;
+	}
 	rmp->tickets = 20;
 	total_tickets += 20;
 	rmp->flags = IN_USE;
@@ -324,6 +336,8 @@ int do_start_scheduling(message *m_ptr)
 	 */
 
 	m_ptr->SCHEDULING_SCHEDULER = SCHED_PROC_NR;
+
+	do_lottery();
 
 	return OK;
 }
@@ -451,9 +465,12 @@ static void balance_queues(struct timer *tp)
 	struct schedproc *rmp;
 	int proc_nr;
 
+	printf("                balance_queues called\n");
 	for (proc_nr=0, rmp=schedproc; proc_nr < NR_PROCS; proc_nr++, rmp++) {
 		if (rmp->flags & IN_USE) {
+			//printf("rmp->priority = %d\n", rmp->priority);
 			if (rmp->priority > rmp->max_priority) {
+				printf("rmp->max_priority = %d\n", rmp->max_priority);
 				rmp->priority -= 1; /* increase priority */
 				schedule_process_local(rmp);
 			}
