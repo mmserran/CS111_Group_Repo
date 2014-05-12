@@ -1,3 +1,3 @@
 
-slugmem_binary: slugmem.c
-	gcc -o slugmem slugmem.c
+debug: slugmem.c
+	gcc -g -o slugmem slugmem.c

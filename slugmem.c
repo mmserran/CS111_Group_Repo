@@ -17,10 +17,26 @@ struct hashtable* ht;
 
 void init_hashtable()
 {
-	//ht = malloc(sizeof(struct hashtable));
+	ht = malloc(sizeof(struct hashtable));
 	ht->table = calloc(2048, sizeof(struct allocation*));
 	ht->size = 2048;
 	ht->load = 0;
+}
+
+void destroy_hashtable()
+{
+	int i;
+	for(i = 0; i < ht->size; ++i)
+	{
+		if(ht->table[i] != NULL)
+		{
+		    free(ht->table[i]);
+		    ht->table[i] = NULL;
+		}
+
+	}
+	free(ht->table);
+	free(ht);
 }
 
 void insert_into_hashtable(void* loc)
@@ -77,10 +93,12 @@ void* slug_malloc(size_t size, char* where)
 //only for testing purposes
 int main()
 {
-
+	init_hashtable();
 	int i = 4;
+	int b = 24;
 	insert_into_hashtable(&i);
 	printf("%d\n", is_in_hashtable(&i));
+	printf("%d\n", is_in_hashtable(&b));
 	printf("%d\n", delete_from_hashtable(&i));
 	printf("%d\n", is_in_hashtable(&i));
 
