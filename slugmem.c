@@ -1,10 +1,12 @@
 
 //#include "slugmem.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <time.h>
+
 
 
 struct allocation
@@ -24,6 +26,8 @@ struct hashtable
 };
 
 struct hashtable* ht = NULL;
+int EXIT_STATUS = 0;
+
 
 void destroy_hashtable()
 {
@@ -59,6 +63,7 @@ void insert_into_hashtable(void* loc, char* where, time_t when, size_t size)
 
 	ht->table[pos] = a;
 	++ht->load;
+
 }
 
 struct allocation* is_in_hashtable(void* loc)
@@ -83,7 +88,7 @@ struct allocation* delete_from_hashtable(void* loc, char* where)
 		if(ht->table[pos]->loc == loc)
 		{
 			//free(ht->table[pos]);
-			ht->table[pos]->active = false;
+			//ht->table[pos]->active = false;
 			ht->table[pos]->where = where;
 			//--ht->load;
 			return ht->table[pos];
@@ -93,32 +98,13 @@ struct allocation* delete_from_hashtable(void* loc, char* where)
 }
 
 
-
-void slug_free ( void *addr, char *where )
-{
-	if(ht == NULL)
-	{ 
-		fprintf(stderr, "%s:Error. Invalid Free, memory not allocated.\n", where);
-		exit(1);
-	}
-	struct allocation* a = delete_from_hashtable(addr, where);
-
-	if(a == NULL)
-	{
-		fprintf(stderr, "%s:Error. Invalid Free, memory not allocated.\n", where);
-		exit(1);
-	}
-
-	if(a->active == false)
-	{
-		fprintf(stderr, "Error. Memory already freed at %s\n", where);
-		exit(1);
-	}
-
-}
-
 void slug_memstats ( void )
 {
+	if(ht == NULL){
+		printf("There were no allocations!\n");
+		exit(0);
+	}
+
 	int i;
 	struct tm * timeinfo;
 	for(i = 0; i < ht->size; ++i)
@@ -130,14 +116,61 @@ void slug_memstats ( void )
 		//for debugging only
 		printf("At entry %d ...  ", i);
 
-		printf("%p: size %zu: allocation time %s: ",
-			 ht->table[i]->loc, ht->table[i]->size, asctime(timeinfo)); //STOPPED HERE
+		//printf("%p: size %zu: allocation time %s: ",
+		//	 ht->table[i]->loc, ht->table[i]->size, asctime(timeinfo)); 
 
-		if(ht->table[i]->active == true)
+		printf("%p: size %zu: allocation time %zu: ",
+			 ht->table[i]->loc, ht->table[i]->size, ht->table[i]->when); //STOPPED HERE
+
+
+		if(ht->table[i]->active == true){
 			printf("Allocated at %s\n", ht->table[i]->where);
+			EXIT_STATUS = 1;
+		}
 		else
 			printf("Freed at %s\n", ht->table[i]->where);
 	}
+	if(EXIT_STATUS == 1)
+		printf("There were problems.\n");
+
+	if(EXIT_STATUS == 0)
+		printf("There were no problems.\n");
+}
+
+
+void slug_free ( void *addr, char *where )
+{
+	//printf("%p\n", addr);
+
+	if(ht == NULL)
+	{ 
+		fprintf(stderr, "%s:Error. Invalid Free, memory not allocated.\n", where);
+		EXIT_STATUS = 1;
+		slug_memstats();
+		exit(0);
+	}
+	struct allocation* a = delete_from_hashtable(addr, where);
+
+	if(a == NULL)
+	{
+		fprintf(stderr, "%s:Error. Invalid Free, memory not allocated.\n", where);
+		EXIT_STATUS = 1;
+		slug_memstats();
+		exit(0);
+	}
+
+	if(a->active == false)
+	{
+		fprintf(stderr, "Error. Memory already freed at %s\n", where);
+		EXIT_STATUS = 1;
+		slug_memstats();
+		exit(0);
+	}
+	a->active = false;
+
+
+	//printf("memory was allocated and freed successfully.\n");
+
 }
 
 void init_hashtable()
@@ -163,6 +196,7 @@ void* slug_malloc(size_t size, char* where)
 
 	void* loc = malloc(size);
 	insert_into_hashtable(loc, where, now, size);
+	return loc;
 }
 
 
