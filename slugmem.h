@@ -1,9 +1,6 @@
 //slugmem.h
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
-#include <stdbool.h>
+#define malloc(s) slug_malloc((s), FILE_POS)
 
 
 void *slug_malloc ( size_t size, char *WHERE );
@@ -39,11 +36,11 @@ void slug_memstats ( void );
 
 */
 
-/*
 
-#define malloc(s) slug_malloc((s))
 
-To get the file and line number you might find the following macros helpful:
+//#define malloc(s) slug_malloc((s))
+
+//To get the file and line number you might find the following macros helpful:
 
 
 #define FUNCTIONIZE(a,b) a(b)
@@ -51,10 +48,9 @@ To get the file and line number you might find the following macros�
 #define INT2STRING(i) FUNCTIONIZE(STRINGIZE,i)
 #define FILE_POS __FILE__ ":" INT2STRING(__LINE__)
 
-You will need to add an argument to slug_malloc() and slug_free() to pass in FILE_POS.
-
-#define malloc(s) slug_malloc((s), FILE_POS)
+//You will need to add an argument to slug_malloc() and slug_free() to pass in FILE_POS.
 
 
-*/
+
+
 
