@@ -1,5 +1,8 @@
 
 //#include "slugmem.h"
+/*  CREATED 5/21/2014
+ *  Group members: Tyler Smith, James Shedel, Mark Serrano, James Kuch, Richard Nicholson
+ */
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -7,12 +10,10 @@
 #include <stdbool.h>
 #include <time.h>
 
-
-
 struct allocation
 {
-	void* loc;
-	char* where;
+	void* loc;   //value returned by malloc
+	char* where; //location within the file 
 	time_t when;
 	size_t size;
 	bool active;
@@ -21,13 +22,20 @@ struct allocation
 struct hashtable
 {
 	size_t size;
-	size_t load;
+	size_t load; 
 	struct allocation** table;
 };
 
 struct hashtable* ht = NULL;
 int EXIT_STATUS = 0;
 
+/* ----------destroy_hashtable()---------
+ * @params: none
+ * @precondition: table must exist
+ * @postcondition: table has ceased to exist
+ *
+ * description: destroys the hash table and frees the memory that was used by it
+ * -------------------------------------- */
 
 void destroy_hashtable()
 {
@@ -45,62 +53,72 @@ void destroy_hashtable()
 	free(ht);
 }
 
+/* ---------insert_into_hashtable()------
+ * @params: loc (the memory location returned by malloc), where (line number in file), when (time allocated),
+ * size (size of allocation)
+ * @precondition(s): none of the params are null
+ * @postcondition: a new allocation data structure a is in the hash table
+ *
+ * description: takes arguments, allocates memory for the allocation hash table data structure, and 
+ * then inserts the data structure into the table at position: loc % (size of hash table)
+ * -------------------------------------- */
+
 void insert_into_hashtable(void* loc, char* where, time_t when, size_t size)
 {
-	assert(ht->size != ht->load + 5);
+	assert(ht->size != ht->load + 5); //temporary
 	size_t pos = (unsigned long) loc % ht->size;
+
+	/* this is linear probing, if the space we want to use
+	 * is already occupied by another allocation, we add one to the pos
+	 * and re-hash the position */
 	while(ht->table[pos] != NULL)
 	{
 		pos = (pos + 1) % ht->size;
 	}
-	struct allocation* a = malloc(sizeof (struct allocation));
 
+	//Create the allocation data structure and fill it with the paramaters
+	struct allocation* a = malloc(sizeof (struct allocation));
 	a->loc = loc;
 	a->where = where;
 	a->when = when;
 	a->size = size;
 	a->active = true;
 
+	//Insert the allocation structure into the hash table
 	ht->table[pos] = a;
 	++ht->load;
 
 }
 
+/* ----------is_in_hashtable()-----------
+ * @params: loc -> memory location of element to look up in hash table
+ * @precondition: hash table must exist, loc must not be null
+ * @postcondition: returns null if loc is not in hashtable
+ *                 returns pointer to allocation structure if loc is in hashtable
+ *
+ * description: takes memory location as argument, checks to see if the given location is located in
+ * the hash table by hashing the memory location and seeing if there is data at that position. if there 
+ * is no data, then NULL is returned.
+ * -------------------------------------- */
+
 struct allocation* is_in_hashtable(void* loc)
 {
 	size_t pos = (unsigned long) loc % ht->size;
+
 	while(ht->table[pos] != NULL)
 	{
 		if (ht->table[pos]->loc == loc) return ht->table[pos];
 
 		pos = (pos + 1) % ht->size;
-
 	}
-	return NULL;
-}
 
-//returns false if element wasn't found
-struct allocation* delete_from_hashtable(void* loc, char* where)
-{
-	size_t pos = (unsigned long) loc % ht->size;
-	while(ht->table[pos] != NULL)
-	{
-		if(ht->table[pos]->loc == loc)
-		{
-			//free(ht->table[pos]);
-			//ht->table[pos]->active = false;
-			ht->table[pos]->where = where;
-			//--ht->load;
-			return ht->table[pos];
-		}
-	}
 	return NULL;
 }
 
 
 void slug_memstats ( void )
 {
-	if(ht == NULL){
+	if(ht == NULL) {
 		printf("There were no allocations!\n");
 		exit(0);
 	}
