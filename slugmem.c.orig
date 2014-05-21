@@ -22,22 +22,13 @@ struct allocation
 struct hashtable
 {
 	size_t size;
-	size_t load;
+	size_t load; 
 	struct allocation** table;
 	int active_entries;
 };
 
-void init_hashtable();
-void destroy_hashtable();
-void double_hashtable();
-void insert_into_hashtable(struct allocation*);
-struct allocation* is_in_hashtable(void* );
-
-
-
 struct hashtable* ht = NULL;
 int EXIT_STATUS = 0;
-
 
 /* ----------destroy_hashtable()---------
  * @params: none
@@ -62,25 +53,30 @@ void destroy_hashtable()
 	free(ht->table);
 	free(ht);
 }
-
+/*
 void double_hashtable()
 {
 	//ht = malloc(sizeof(struct hashtable));
 	struct allocation** oldtable = ht->table;
 	size_t oldsize = ht->size;
 
-	ht->size = (oldsize * oldsize);
+	ht->size = (oldsize * 2) + 1;
 	ht->table = calloc(ht->size, sizeof(struct allocation*));
-	int i = 0;
-	for(i = 0; i < oldsize; ++i){
+
+	for(int i = 0; i < oldsize; ++i){
 		if(oldtable[i] != NULL)
-			insert_into_hashtable(oldtable[i]);
+			ht->table[]
 	}
 
-	free(oldtable);
+<<<<<<< HEAD
+	ht->load = 0;
+	atexit(slug_memstats);		
 }
-
-
+*/
+void insert_into_hashtable(void* loc, char* where, time_t when, size_t size)
+{
+	//assert(ht->size != ht->load + 5);
+=======
 /* ---------insert_into_hashtable()------
  * @params: loc (the memory location returned by malloc), where (line number in file), when (time allocated),
  * size (size of allocation)
@@ -91,13 +87,11 @@ void double_hashtable()
  * then inserts the data structure into the table at position: loc % (size of hash table)
  * -------------------------------------- */
 
-void insert_into_hashtable(struct allocation* a)
+void insert_into_hashtable(void* loc, char* where, time_t when, size_t size)
 {
-	//assert(ht->size != ht->load + 5); //temporary
-	if(ht->load * 4 > ht->size)
-		double_hashtable();
-
-	size_t pos = (unsigned long) a->loc % ht->size;
+	assert(ht->size != ht->load + 5); //temporary
+>>>>>>> origin/comments
+	size_t pos = (unsigned long) loc % ht->size;
 
 	/* this is linear probing, if the space we want to use
 	 * is already occupied by another allocation, we add one to the pos
@@ -107,12 +101,19 @@ void insert_into_hashtable(struct allocation* a)
 		pos = (pos + 1) % ht->size;
 	}
 
+	//Create the allocation data structure and fill it with the paramaters
+	struct allocation* a = malloc(sizeof (struct allocation));
+	a->loc = loc;
+	a->where = where;
+	a->when = when;
+	a->size = size;
+	a->active = true;
+
 	//Insert the allocation structure into the hash table
 	ht->table[pos] = a;
-	++ht->load;
+	//++ht->load;
 	++ht->active_entries;
 }
-
 
 /* ----------is_in_hashtable()-----------
  * @params: loc -> memory location of element to look up in hash table
@@ -136,9 +137,12 @@ struct allocation* is_in_hashtable(void* loc)
 		pos = (pos + 1) % ht->size;
 	}
 
+<<<<<<< HEAD
+=======
 	return NULL;
 }
 
+>>>>>>> origin/comments
 
 void slug_memstats ( void )
 {
@@ -212,6 +216,16 @@ void slug_free ( void *addr, char *where )
 
 }
 
+void init_hashtable()
+{
+	ht = malloc(sizeof(struct hashtable));
+	ht->table = calloc(2049, sizeof(struct allocation*));
+	ht->size = 2049;
+	ht->load = 0;
+	atexit(slug_memstats);
+}
+
+
 void* slug_malloc(size_t size, char* where)
 {
 	if (ht == NULL)
@@ -224,25 +238,8 @@ void* slug_malloc(size_t size, char* where)
 	time(&now);
 
 	void* loc = malloc(size);
-	//Create the allocation data structure and fill it with the paramaters
-	struct allocation* a = malloc(sizeof (struct allocation));
-	a->loc = loc;
-	a->where = where;
-	a->when = now;
-	a->size = size;
-	a->active = true;
-
-	insert_into_hashtable(a);
+	insert_into_hashtable(loc, where, now, size);
 	return loc;
 }
 
-
-void init_hashtable()
-{
-	ht = malloc(sizeof(struct hashtable));
-	ht->table = calloc(2049, sizeof(struct allocation*));
-	ht->size = 2049;
-	ht->load = 0;
-	atexit(slug_memstats);
-}
 

@@ -5,15 +5,16 @@
 
 int main()
 {
-	int* mem[5];
+	int size = 10;
+	int* mem[size];
 	int i;
-	for(i = 0; i < 5; ++i)
+	for(i = 0; i < size; ++i)
 	{
 		mem[i] = malloc(sizeof(int));
 		*mem[i] = i;
 	}
 
-	for(i = 0; i < 5; ++i)
+	for(i = 0; i < size; ++i)
 	{
 		free(mem[i]);
 	}
