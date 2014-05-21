@@ -23,6 +23,7 @@ struct hashtable
 	size_t size;
 	size_t load;
 	struct allocation** table;
+	int active_entries;
 };
 
 struct hashtable* ht = NULL;
@@ -44,10 +45,28 @@ void destroy_hashtable()
 	free(ht->table);
 	free(ht);
 }
+/*
+void double_hashtable()
+{
+	//ht = malloc(sizeof(struct hashtable));
+	struct allocation** oldtable = ht->table;
+	size_t oldsize = ht->size;
 
+	ht->size = (oldsize * 2) + 1;
+	ht->table = calloc(ht->size, sizeof(struct allocation*));
+
+	for(int i = 0; i < oldsize; ++i){
+		if(oldtable[i] != NULL)
+			ht->table[]
+	}
+
+	ht->load = 0;
+	atexit(slug_memstats);		
+}
+*/
 void insert_into_hashtable(void* loc, char* where, time_t when, size_t size)
 {
-	assert(ht->size != ht->load + 5);
+	//assert(ht->size != ht->load + 5);
 	size_t pos = (unsigned long) loc % ht->size;
 	while(ht->table[pos] != NULL)
 	{
@@ -62,8 +81,8 @@ void insert_into_hashtable(void* loc, char* where, time_t when, size_t size)
 	a->active = true;
 
 	ht->table[pos] = a;
-	++ht->load;
-
+	//++ht->load;
+	++ht->active_entries;
 }
 
 struct allocation* is_in_hashtable(void* loc)
@@ -79,24 +98,6 @@ struct allocation* is_in_hashtable(void* loc)
 	return NULL;
 }
 
-//returns false if element wasn't found
-struct allocation* delete_from_hashtable(void* loc, char* where)
-{
-	size_t pos = (unsigned long) loc % ht->size;
-	while(ht->table[pos] != NULL)
-	{
-		if(ht->table[pos]->loc == loc)
-		{
-			//free(ht->table[pos]);
-			//ht->table[pos]->active = false;
-			ht->table[pos]->where = where;
-			//--ht->load;
-			return ht->table[pos];
-		}
-	}
-	return NULL;
-}
-
 
 void slug_memstats ( void )
 {
@@ -104,6 +105,8 @@ void slug_memstats ( void )
 		printf("There were no allocations!\n");
 		exit(0);
 	}
+
+	printf("Memory Dump:\n\n ================================================ \n\n");
 
 	int i;
 	struct tm * timeinfo;
@@ -113,28 +116,24 @@ void slug_memstats ( void )
 			continue;
 
 		timeinfo = localtime(&ht->table[i]->when);
-		//for debugging only
-		printf("At entry %d ...  ", i);
-
-		//printf("%p: size %zu: allocation time %s: ",
-		//	 ht->table[i]->loc, ht->table[i]->size, asctime(timeinfo)); 
-
-		printf("%p: size %zu: allocation time %zu: ",
-			 ht->table[i]->loc, ht->table[i]->size, ht->table[i]->when); //STOPPED HERE
 
 
-		if(ht->table[i]->active == true){
-			printf("Allocated at %s\n", ht->table[i]->where);
-			EXIT_STATUS = 1;
-		}
-		else
-			printf("Freed at %s\n", ht->table[i]->where);
+		printf("%30s: %d\n", "table entry", i);
+		printf("%30s: %p\n", "allocated memory address", ht->table[i]->loc);
+		printf("%30s: %zu\n", "allocation size", ht->table[i]->size);
+		printf("%30s: %s\n", "time of allocation", asctime(timeinfo));
+
 	}
+		
+	printf(" ================================================ \n\n");
+
 	if(EXIT_STATUS == 1)
 		printf("There were problems.\n");
 
 	if(EXIT_STATUS == 0)
 		printf("There were no problems.\n");
+
+	destroy_hashtable();
 }
 
 
@@ -144,18 +143,18 @@ void slug_free ( void *addr, char *where )
 
 	if(ht == NULL)
 	{ 
-		fprintf(stderr, "%s:Error. Invalid Free, memory not allocated.\n", where);
+		fprintf(stderr, "\nERROR: Memory not allocated\n\n %15s: %s\n %15s: %p\n\n",
+			"at", where, "target memory", addr);
 		EXIT_STATUS = 1;
-		slug_memstats();
 		exit(0);
 	}
-	struct allocation* a = delete_from_hashtable(addr, where);
+	struct allocation* a = is_in_hashtable(addr);
 
 	if(a == NULL)
 	{
-		fprintf(stderr, "%s:Error. Invalid Free, memory not allocated.\n", where);
+		fprintf(stderr, "\nERROR: Memory not allocated\n\n %15s: %s\n %15s: %p\n\n",
+			"at", where, "target memory", addr);
 		EXIT_STATUS = 1;
-		slug_memstats();
 		exit(0);
 	}
 
@@ -163,13 +162,12 @@ void slug_free ( void *addr, char *where )
 	{
 		fprintf(stderr, "Error. Memory already freed at %s\n", where);
 		EXIT_STATUS = 1;
-		slug_memstats();
+
 		exit(0);
 	}
 	a->active = false;
 
-
-	//printf("memory was allocated and freed successfully.\n");
+	free(a->loc);
 
 }
 
@@ -200,23 +198,3 @@ void* slug_malloc(size_t size, char* where)
 }
 
 
-
-
-/*
-//only for testing purposes
-int main()
-{
-	/*
-	int i = 4;
-	int b = 24;
-	insert_into_hashtable(&i);
-	printf("%d\n", is_in_hashtable(&i));
-	printf("%d\n", is_in_hashtable(&b));
-	printf("%d\n", delete_from_hashtable(&i));
-	printf("%d\n", is_in_hashtable(&i));
-		slug_malloc(8, FILE_POS);
-	slug_memstats();
-	destroy_hashtable();
-	return 0;
-}
-*/

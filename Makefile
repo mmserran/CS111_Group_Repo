@@ -1,29 +1,23 @@
 
-SOURCES = slugmem.c fucked.c perfect.c
+SOURCES = perfect.c notallocated.c doublefree.c missedfree.c
+BINARIES = perfect notallocated doublefree missedfree
+SLUGMEM = slugmem.c
 
 
-debugtwo: slugmem.c perfect.c
-	gcc -g -o perfect slugmem.c perfect.c 
+all: ${BINARIES}
 
-perfect: slugmem.c perfect.c
-	gcc -g -o perfect slugmem.c perfect.c 
+perfect: ${SLUGMEM} perfect.c
+	gcc -g -o $@ $^
 
-fucked: slugmem.c fucked.c
-	gcc -g -o fucked slugmem.c fucked.c
+notallocated: ${SLUGMEM} notallocated.c
+	gcc -g -o $@ $^
 
+doublefree: ${SLUGMEM} doublefree.c
+	gcc -g -o $@ $^
 
-build: ${SOURCES}
-	gcc -g -c slugmem.c
-	gcc -g -o perfect perfect.c
-	gcc -g -o fucked fucked.c
-
-debug: slugmem.c
-	gcc -g -o slugmem slugmem.c
-
-tests:	perfect.c fucked.c
-	gcc -g -o perfect perfect.c
-	gcc -g -o fucked fucked.c
+missedfree: ${SLUGMEM} missedfree.c
+	gcc -g -o $@ $^
 
 
 clean:
-	rm slugmem perfect fucked
+	rm ${BINARIES}
