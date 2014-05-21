@@ -220,6 +220,12 @@ void* slug_malloc(size_t size, char* where)
 	if(size == 0) 
 		fprintf(stderr, "%s:Unusual Operation.  Allocation of size 0.\n", where);
 
+	if(size >= 128000){
+		fprintf(stderr, "\nERROR: Allocation over 128kb\n\n %15s: %s\n %15s: %zu\n\n",
+			"at", where, "size", size);
+		EXIT_STATUS = 1;
+		exit(0);
+	}
 	time_t now;
 	time(&now);
 

@@ -1,6 +1,6 @@
 
-SOURCES = perfect.c notallocated.c doublefree.c missedfree.c
-BINARIES = perfect notallocated doublefree missedfree
+SOURCES = perfect.c notallocated.c doublefree.c missedfree.c largeinput.c
+BINARIES = perfect notallocated doublefree missedfree largeinput
 SLUGMEM = slugmem.c
 
 
@@ -18,6 +18,8 @@ doublefree: ${SLUGMEM} doublefree.c
 missedfree: ${SLUGMEM} missedfree.c
 	gcc -g -o $@ $^
 
+largeinput: ${SLUGMEM} largeinput.c
+	gcc -g -o $@ $^
 
 clean:
 	rm ${BINARIES}
