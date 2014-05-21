@@ -10,6 +10,8 @@
 #include <stdbool.h>
 #include <time.h>
 
+
+/* Allocation data structure used in hash table */
 struct allocation
 {
 	void* loc;   //value returned by malloc
@@ -82,8 +84,7 @@ void double_hashtable()
 
 
 /* ---------insert_into_hashtable()------
- * @params: loc (the memory location returned by malloc), where (line number in file), when (time allocated),
- * size (size of allocation)
+ * @params: struct allocation*
  * @precondition(s): none of the params are null
  * @postcondition: a new allocation data structure a is in the hash table
  *
@@ -139,6 +140,11 @@ struct allocation* is_in_hashtable(void* loc)
 	return NULL;
 }
 
+/* -----------slug_memstats()-----------
+ * @params: none
+ * @precondition:
+ * @postcondition: 
+ * -------------------------------------- */
 
 void slug_memstats ( void )
 {
@@ -151,6 +157,8 @@ void slug_memstats ( void )
 
 	int i;
 	struct tm * timeinfo;
+
+	/* Loop through the hash table */
 	for(i = 0; i < ht->size; ++i)
 	{
 		if(ht->table[i] == NULL)
@@ -177,11 +185,21 @@ void slug_memstats ( void )
 	destroy_hashtable();
 }
 
+/* -----------slug_free()----------------
+ * @params: addr -> the address of the memory region needing to be freed
+ *			where -> the position in code where slug_free() is called 
+ * @precondition: addr is not null, where is not null, ht has been created
+ * @postcondition: the memory at addr is freed 
+ *
+ * description: this is the replacement for free(). it marks the memory in the hashtable as 
+ * being inactive if it is in the hashtable and is active already.
+ * -------------------------------------- */
 
 void slug_free ( void *addr, char *where )
 {
 	//printf("%p\n", addr);
 
+	/* check to see if the hashtable doesn't exist, in which case print out an error */
 	if(ht == NULL)
 	{ 
 		fprintf(stderr, "\nERROR: Memory not allocated\n\n %15s: %s\n %15s: %p\n\n",
@@ -189,6 +207,7 @@ void slug_free ( void *addr, char *where )
 		EXIT_STATUS = 1;
 		exit(0);
 	}
+
 	struct allocation* a = is_in_hashtable(addr);
 
 	if(a == NULL)
@@ -206,17 +225,33 @@ void slug_free ( void *addr, char *where )
 
 		exit(0);
 	}
+
 	a->active = false;
 
 	free(a->loc);
 
 }
 
+/* -----------slug_malloc()--------------
+ * @params: size -> size of the memory region to be allocated
+ *          where -> line number of memory allocation
+ * @precondition: size and where are not null
+ * @postcondition: memory is allocated and tracked in the hashtable
+ * @returns: loc (allocated memory address)
+ * 
+ * description: replacement for malloc(). creates a hash table if not already instantiated, then allocates memory using 
+ * malloc(), adds the memory address, timestamp, location within file and size of memory allocated
+ * to the hasthtable for lookup later.
+ * -------------------------------------- */
+
 void* slug_malloc(size_t size, char* where)
 {
+
+	/* create the hashtable if this is the first malloc */
 	if (ht == NULL)
 		init_hashtable();
 
+	/* special case if size of allocation is zero */
 	if(size == 0) 
 		fprintf(stderr, "%s:Unusual Operation.  Allocation of size 0.\n", where);
 
@@ -224,7 +259,8 @@ void* slug_malloc(size_t size, char* where)
 	time(&now);
 
 	void* loc = malloc(size);
-	//Create the allocation data structure and fill it with the paramaters
+
+	/* Create the allocation data structure and fill it with the paramaters */
 	struct allocation* a = malloc(sizeof (struct allocation));
 	a->loc = loc;
 	a->where = where;
@@ -232,10 +268,16 @@ void* slug_malloc(size_t size, char* where)
 	a->size = size;
 	a->active = true;
 
+    /* add the location, line num, time and size of allocation to the hashtable */
 	insert_into_hashtable(a);
 	return loc;
 }
 
+/* -----------init_hashtable()-----------
+ * @params: none
+ * @precondition: none
+ * @postcondition: creates a new hashtable of size 2049
+ * -------------------------------------- */
 
 void init_hashtable()
 {
@@ -243,6 +285,8 @@ void init_hashtable()
 	ht->table = calloc(2049, sizeof(struct allocation*));
 	ht->size = 2049;
 	ht->load = 0;
+
+	/* run slug_memstats when the program exits */
 	atexit(slug_memstats);
 }
 
