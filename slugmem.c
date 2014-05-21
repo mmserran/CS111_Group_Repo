@@ -35,8 +35,6 @@ void double_hashtable();
 void insert_into_hashtable(struct allocation*);
 struct allocation* is_in_hashtable(void* );
 
-
-
 struct hashtable* ht = NULL;
 int EXIT_STATUS = 0;
 
@@ -61,24 +59,39 @@ void destroy_hashtable()
 		}
 
 	}
+
+	/* clean up */
 	free(ht->table);
 	free(ht);
 }
 
+/* ----------double_hashtable()---------
+ * @params: none
+ * @precondition: table must exist
+ * @postcondition: table is now twice the size
+ *
+ * description: doubles the size of the hashtable
+ * -------------------------------------- */
+
 void double_hashtable()
 {
 	//ht = malloc(sizeof(struct hashtable));
+	/* save the old table */
 	struct allocation** oldtable = ht->table;
 	size_t oldsize = ht->size;
 
+	/* create a new table that is twice the size using the same pointer */
 	ht->size = (oldsize * oldsize);
 	ht->table = calloc(ht->size, sizeof(struct allocation*));
+
+	/* copy contents of old table into the new table */
 	int i = 0;
 	for(i = 0; i < oldsize; ++i){
 		if(oldtable[i] != NULL)
 			insert_into_hashtable(oldtable[i]);
 	}
 
+    /* clean up */
 	free(oldtable);
 }
 
@@ -142,12 +155,20 @@ struct allocation* is_in_hashtable(void* loc)
 
 /* -----------slug_memstats()-----------
  * @params: none
- * @precondition:
- * @postcondition: 
+ * @precondition: none
+ * @postcondition: none
+ *
+ * description: prints out the memory statistics for the program that ran, including:
+ *              hash table entry
+ *              allocated memory address
+ *              allocation size
+ *              time of allocation
+ *              any errors, such as no memory allocations, invalid memory allocations/frees
  * -------------------------------------- */
 
 void slug_memstats ( void )
 {
+	/* If the hash table does not exist, then there were no allocations */
 	if(ht == NULL) {
 		printf("There were no allocations!\n");
 		exit(0);
@@ -158,14 +179,13 @@ void slug_memstats ( void )
 	int i;
 	struct tm * timeinfo;
 
-	/* Loop through the hash table */
+	/* Loop through the hash table and print the data out */
 	for(i = 0; i < ht->size; ++i)
 	{
 		if(ht->table[i] == NULL)
 			continue;
 
 		timeinfo = localtime(&ht->table[i]->when);
-
 
 		printf("%30s: %d\n", "table entry", i);
 		printf("%30s: %p\n", "allocated memory address", ht->table[i]->loc);
@@ -182,6 +202,7 @@ void slug_memstats ( void )
 	if(EXIT_STATUS == 0)
 		printf("There were no problems.\n");
 
+	/* clean things up */
 	destroy_hashtable();
 }
 
@@ -208,8 +229,10 @@ void slug_free ( void *addr, char *where )
 		exit(0);
 	}
 
+	/* get the allocation object that corresponds to addr */
 	struct allocation* a = is_in_hashtable(addr);
 
+	/* if the object does not exist, then it has not been allocated and print out an error */
 	if(a == NULL)
 	{
 		fprintf(stderr, "\nERROR: Memory not allocated\n\n %15s: %s\n %15s: %p\n\n",
@@ -218,6 +241,7 @@ void slug_free ( void *addr, char *where )
 		exit(0);
 	}
 
+    /* if the allocation object has already been freed, print out an error */
 	if(a->active == false)
 	{
 		fprintf(stderr, "Error. Memory already freed at %s\n", where);
@@ -226,8 +250,8 @@ void slug_free ( void *addr, char *where )
 		exit(0);
 	}
 
+	/* set the hash table entry to be inactive and then free the memory */
 	a->active = false;
-
 	free(a->loc);
 
 }
@@ -255,15 +279,18 @@ void* slug_malloc(size_t size, char* where)
 	if(size == 0) 
 		fprintf(stderr, "%s:Unusual Operation.  Allocation of size 0.\n", where);
 
-	if(size >= 128000){
-		fprintf(stderr, "\nERROR: Allocation over 128kb\n\n %15s: %s\n %15s: %zu\n\n",
+    /* print out an error message if the allocation is over 128MB */
+	if(size >= 128000000){
+		fprintf(stderr, "\nERROR: Allocation over 128MB\n\n %15s: %s\n %15s: %zu\n\n",
 			"at", where, "size", size);
 		EXIT_STATUS = 1;
 		exit(0);
 	}
+
 	time_t now;
 	time(&now);
 
+	/* allocate the memory */
 	void* loc = malloc(size);
 
 	/* Create the allocation data structure and fill it with the paramaters */
@@ -282,7 +309,7 @@ void* slug_malloc(size_t size, char* where)
 /* -----------init_hashtable()-----------
  * @params: none
  * @precondition: none
- * @postcondition: creates a new hashtable of size 2049
+ * @postcondition: creates a new hashtable of size 2049 (arbitrary size, but also odd numbers)
  * -------------------------------------- */
 
 void init_hashtable()
