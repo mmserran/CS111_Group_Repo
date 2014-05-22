@@ -37,12 +37,8 @@ void slug_memstats ( void );
 
 
 
-//#define malloc(s) slug_malloc((s))
 
 //To get the file and line number you might find the following macros helpful:
-
-
-
 
 #define FUNCTIONIZE(a,b) a(b)
 #define STRINGIZE(a) #a

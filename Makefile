@@ -1,5 +1,5 @@
 
-BINARIES = perfect notallocated doublefree missedfree largeinput
+BINARIES = perfect notallocated doublefree missedfree largeinput notfreed
 SLUGMEM  = slugmem.c
 CC       = cc
 
@@ -7,7 +7,7 @@ CC       = cc
 all: ${BINARIES}
 
 ${BINARIES}:
-	${CC} -g ${SLUGMEM} $@.c -o $@
+	${CC} -g ${SLUGMEM} $@.c -o $@ -lm
 
 clean:
 	rm -rf ${BINARIES}

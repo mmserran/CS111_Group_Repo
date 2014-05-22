@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <time.h>
+#include <math.h>
 
 
 /* Allocation data structure used in hash table */
@@ -168,6 +169,7 @@ struct allocation* is_in_hashtable(void* loc)
 
 void slug_memstats ( void )
 {
+
 	/* If the hash table does not exist, then there were no allocations */
 	if(ht == NULL) {
 		printf("There were no allocations!\n");
@@ -176,16 +178,25 @@ void slug_memstats ( void )
 
 	printf("Memory Dump:\n\n ================================================ \n\n");
 
-	int i;
 	struct tm * timeinfo;
 
+	int n_allocs = 0;
+	int total    = 0;
+
+	double mean;
+	double std_dev = 0;
+
 	/* Loop through the hash table and print the data out */
+	int i;
 	for(i = 0; i < ht->size; ++i)
 	{
 		if(ht->table[i] == NULL)
 			continue;
 
 		timeinfo = localtime(&ht->table[i]->when);
+
+		n_allocs += 1;
+		total    += ht->table[i]->size;
 
 		printf("%30s: %d\n", "table entry", i);
 		printf("%30s: %p\n", "allocated memory address", ht->table[i]->loc);
@@ -196,6 +207,20 @@ void slug_memstats ( void )
 		
 	printf(" ================================================ \n\n");
 
+	/* Statistical Analysis - Mean and Standard Deviation*/
+	mean = total/n_allocs;
+	for(i = 0; i < ht->size; ++i)
+	{
+		if(ht->table[i] == NULL)
+			continue;
+
+		std_dev += pow(ht->table[i]->size - mean, 2.0);
+
+	}
+	printf("%30s: %f\n", "Average Block Size = ", mean);
+	printf("%30s: %f\n", "Standard Deviation = ", sqrt(std_dev));
+
+	/* report error code status */
 	if(EXIT_STATUS == 1)
 		printf("There were problems.\n");
 
@@ -306,6 +331,30 @@ void* slug_malloc(size_t size, char* where)
 	return loc;
 }
 
+void leak_detection() {
+
+	bool mem_leak_found = false;
+	char* mem_leak_loc;
+
+	int i;
+	for(i = 0; i < ht->size; ++i)
+	{
+		if(ht->table[i] == NULL)
+			continue;
+		if (ht->table[i]->active==true ) {
+			mem_leak_found = true;
+			mem_leak_loc   = ht->table[i]->loc;
+		}
+	}
+
+	if (mem_leak_found) {
+		printf("%s: %p\n\n", "Error. Memory leak detected at ", mem_leak_loc);
+		EXIT_STATUS = 1;
+		exit(0);
+	}
+
+}
+
 /* -----------init_hashtable()-----------
  * @params: none
  * @precondition: none
@@ -321,5 +370,6 @@ void init_hashtable()
 
 	/* run slug_memstats when the program exits */
 	atexit(slug_memstats);
+	atexit(leak_detection);
 }
 
