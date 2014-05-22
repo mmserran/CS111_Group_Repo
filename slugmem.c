@@ -176,7 +176,7 @@ void slug_memstats ( void )
 		exit(0);
 	}
 
-	printf("Memory Dump:\n\n ================================================ \n\n");
+	printf("\nMemory Dump:\n\n ================================================ \n\n");
 
 	struct tm * timeinfo;
 
@@ -205,9 +205,9 @@ void slug_memstats ( void )
 
 	}
 		
-	printf(" ================================================ \n\n");
+	printf(" ================================================ \n");
 
-	/* Statistical Analysis - Mean and Standard Deviation*/
+	/* Statistical Analysis - Mean and Standard Deviation */
 	mean = total/n_allocs;
 	for(i = 0; i < ht->size; ++i)
 	{
@@ -269,7 +269,7 @@ void slug_free ( void *addr, char *where )
     /* if the allocation object has already been freed, print out an error */
 	if(a->active == false)
 	{
-		fprintf(stderr, "Error. Memory already freed at %s\n", where);
+		fprintf(stderr, "ERROR. Memory already freed at %s\n", where);
 		EXIT_STATUS = 1;
 
 		exit(0);
@@ -343,12 +343,12 @@ void leak_detection() {
 			continue;
 		if (ht->table[i]->active==true ) {
 			mem_leak_found = true;
-			mem_leak_loc   = ht->table[i]->loc;
+			mem_leak_loc   = ht->table[i]->where;
 		}
 	}
 
 	if (mem_leak_found) {
-		printf("%s: %p\n\n", "Error. Memory leak detected at ", mem_leak_loc);
+		fprintf(stderr, "ERROR. Memory leak detected at %s\n", mem_leak_loc);
 		EXIT_STATUS = 1;
 		exit(0);
 	}
