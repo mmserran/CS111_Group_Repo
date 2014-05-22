@@ -1,6 +1,13 @@
 README
 ======
 
+CMPS 111 - Operating Systems - Spring 2014
+Group members: Tyler Smith, James Shedel, Mark Serrano, James Kuch, Richard Nicholson
+
+
+
+Project 4
+
 MINIX VERSION:   3.2.1
 COMPILER NEEDED: CC
 
@@ -12,3 +19,4 @@ Test Files Generated:
 - doublefree
 - notallocated
 - largeinput
+- notfreed
