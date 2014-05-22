@@ -76,7 +76,6 @@ void destroy_hashtable()
 
 void double_hashtable()
 {
-	//ht = malloc(sizeof(struct hashtable));
 	/* save the old table */
 	struct allocation** oldtable = ht->table;
 	size_t oldsize = ht->size;
@@ -199,8 +198,10 @@ void slug_memstats ( void )
 		total    += ht->table[i]->size;
 
 		printf("%30s: %d\n", "table entry", i);
+        printf("%30s: %s\n", "location in file", ht->table[i]->where);
 		printf("%30s: %p\n", "allocated memory address", ht->table[i]->loc);
 		printf("%30s: %zu\n", "allocation size", ht->table[i]->size);
+        printf("%30s: %s\n", "freed", ht->table[i]->active ? "no" : "yes");
 		printf("%30s: %s\n", "time of allocation", asctime(timeinfo));
 
 	}
@@ -218,7 +219,7 @@ void slug_memstats ( void )
 
 	}
 	printf("%30s: %f\n", "Average Block Size = ", mean);
-	printf("%30s: %f\n", "Standard Deviation = ", sqrt(std_dev));
+	printf("%30s: %f\n\n", "Standard Deviation = ", sqrt(std_dev));
 
 	/* report error code status */
 	if(EXIT_STATUS == 1)
