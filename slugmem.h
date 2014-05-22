@@ -1,5 +1,5 @@
 //slugmem.h
-
+#include <stddef.h>
 
 
 void *slug_malloc ( size_t size, char *WHERE );
