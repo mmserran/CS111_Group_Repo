@@ -1,0 +1,2 @@
+nice -n15 ./cpubound &
+nice -n5 ./cpubound &

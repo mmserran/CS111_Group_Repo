@@ -1,0 +1,39 @@
+# Mark, James C., Tyler, James K., Richard
+# Project 4 - Install Script - see README.txt
+
+#!/bin/bash
+
+##               slug_read                         ##
+#####################################################
+# declare library call in ``include/''
+#/usr/src/include/
+
+
+# define library call 
+## add source file to ``sys-minix/'' (fork.c)
+#/usr/src/lib/libc/sys-minix
+
+## add source file to ``/usr/src/lib/libc/sys-minix/Makefile.inc'' (fork.c)
+
+## define call number in ``callnr.h'' (fork = 2)
+#/usr/src/include/minix/callnr.h
+
+# register function into call table (int do_fork(void))
+## define prototype in ``proto.h''
+#/usr/src/servers/pm/proto.h
+
+## register function in ``table.c'' (do_fork, /* 2=fork */)
+#/usr/src/servers/pm/table.c
+
+# define function in MINIX server (forkexit.c)
+#/usr/src/servers/pm
+cp forkexit.c /usr/src/servers/pm/forkexit.c
+
+# add previous file to ``/usr/src/servers/pm/Makefile''
+#/usr/src/servers/pm/Makefile
+
+
+
+# Go to the top-level directory and recompile
+cd /usr/src/releasetools
+make install

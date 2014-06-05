@@ -1,0 +1,18 @@
+# Mark, James C., Tyler, James K., Richard
+# Project 2 - Install Script - see README.txt
+
+#!/bin/bash
+
+# Overwrite original files with our modified files
+cp sched/schedproc.h /usr/src/servers/sched/schedproc.h
+cp sched/schedule.c /usr/src/servers/sched/schedule.c
+cp sched/main.c /usr/src/servers/sched/main.c
+cp pm/schedule.c /usr/src/servers/pm/schedule.c
+
+# Go to the tools directory and recompile
+cd /usr/src/tools
+make clean install
+
+# Go to the tools directory and recompile
+cd /usr/src/releasetools
+make hdboot

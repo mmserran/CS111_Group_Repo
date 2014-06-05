@@ -1,4 +1,0 @@
-./iobound 20 &
-./iobound 20 &
-./cpubound 20 &
-./cpubound 20 &
