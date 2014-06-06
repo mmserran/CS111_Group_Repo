@@ -31,7 +31,7 @@
  *===========================================================================*/
 int do_slugread()
 {
-  printf("please work, do_read");
+  printf("please work, do_slugread");
   return(do_read_write(READING));
 }
 
