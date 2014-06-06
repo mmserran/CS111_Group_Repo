@@ -3,37 +3,39 @@
 
 #!/bin/bash
 
+
+# declare our library calls in ``unistd.h''
+cp unistd.h /usr/src/include/unistd.h
+
 ##               slug_read                         ##
 #####################################################
-# declare library call in ``include/''
-#/usr/src/include/
 
 
-# define library call 
-## add source file to ``sys-minix/'' (fork.c)
-#/usr/src/lib/libc/sys-minix
+# define library call: slugread in ``sys-minix/''
+### add source code
+cp sys-minix/slugread.c /usr/src/lib/libc/sys-minix/slugread.c
+### add file to Makefile
+cp sys-minix/Makefile.inc /usr/src/lib/libc/sys-minix/Makefile.inc
 
-## add source file to ``/usr/src/lib/libc/sys-minix/Makefile.inc'' (fork.c)
 
-## define call number in ``callnr.h'' (fork = 2)
-#/usr/src/include/minix/callnr.h
+# register function into call table
+### define call number in ``callnr.h'' (SLUG_LIBREAD = 69)
+cp callnr.h /usr/src/include/minix/callnr.h
+### define prototype in ``proto.h''
+cp vfs/proto.h /usr/src/servers/vfs/proto.h
+### register function in ``table.c''
+cp vfs/table.c /usr/src/servers/vfs/table.c
 
-# register function into call table (int do_fork(void))
-## define prototype in ``proto.h''
-#/usr/src/servers/pm/proto.h
 
-## register function in ``table.c'' (do_fork, /* 2=fork */)
-#/usr/src/servers/pm/table.c
+# define function in MINIX vfs server
+cp vfs/slugread.c /usr/src/servers/vfs/slugread.c
 
-# define function in MINIX server (forkexit.c)
-#/usr/src/servers/pm
-cp forkexit.c /usr/src/servers/pm/forkexit.c
-
-# add previous file to ``/usr/src/servers/pm/Makefile''
-#/usr/src/servers/pm/Makefile
+# add previous file to ``/usr/src/servers/vfs/Makefile''
+cp vfs/Makefile /usr/src/servers/vfs/Makefile
 
 
 
-# Go to the top-level directory and recompile
+##   Go to the top-level directory and recompile   ##
+#####################################################
 cd /usr/src/releasetools
 make install
