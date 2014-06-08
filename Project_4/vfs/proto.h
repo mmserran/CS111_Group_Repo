@@ -216,10 +216,16 @@ int read_write(int rw_flag, struct filp *f, char *buffer, size_t nbytes,
 int rw_pipe(int rw_flag, endpoint_t usr, struct filp *f, char *buf,
 	size_t req_size);
 
-/* slug_libread.c */
+/* slugread.c */
 int do_slugread(void);
+int do_slug_read_write(int rw_flag);
+int slug_read_write(int rw_flag, struct filp *f, char *buffer, size_t nbytes,
+	endpoint_t for_e);
 
 /* request.c */
+int req_slugreadwrite(endpoint_t fs_e, ino_t inode_nr, u64_t pos, int rw_flag,
+	endpoint_t user_e, char *user_addr, unsigned int num_of_bytes,
+	u64_t *new_posp, unsigned int *cum_iop); /* slugs */
 int req_breadwrite(endpoint_t fs_e, endpoint_t user_e, dev_t dev, u64_t pos,
 	unsigned int num_of_bytes, char *user_addr, int rw_flag,
 	u64_t *new_posp, unsigned int *cum_iop);

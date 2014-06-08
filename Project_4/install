@@ -1,41 +1,74 @@
-# Mark, James C., Tyler, James K., Richard
+# Mark, James C., Tyler, Jsames K., Richard
 # Project 4 - Install Script - see README.txt
 
 #!/bin/bash
 
 
-# declare our library calls in ``unistd.h''
-cp unistd.h /usr/src/include/unistd.h
+
+# add slug_library to include
+### add source code
+cp include/slug_library.h /usr/src/include/slug_library.h
+### add filename to include Makefile
+cp include/Makefile /usr/src/include/Makefile
+
+
+
+
+cp vfs/request.c /usr/src/servers/vfs/request.c
+
+
+
+
+
 
 ##               slug_read                         ##
 #####################################################
 
 
-# define library call: slugread in ``sys-minix/''
+# define library call: slugread in lib
 ### add source code
-cp sys-minix/slugread.c /usr/src/lib/libc/sys-minix/slugread.c
-### add file to Makefile
+cp sys-minix/slug_library.c /usr/src/lib/libc/sys-minix/slug_library.c
+### add filename to lib Makefile
 cp sys-minix/Makefile.inc /usr/src/lib/libc/sys-minix/Makefile.inc
 
 
-# register function into call table
+
+
+# define function in MINIX vfs
 ### define call number in ``callnr.h'' (SLUG_LIBREAD = 69)
-cp callnr.h /usr/src/include/minix/callnr.h
-### define prototype in ``proto.h''
-cp vfs/proto.h /usr/src/servers/vfs/proto.h
+cp include/minix/callnr.h /usr/src/include/minix/callnr.h
 ### register function in ``table.c''
 cp vfs/table.c /usr/src/servers/vfs/table.c
-
-
-# define function in MINIX vfs server
+### define prototype in ``proto.h''
+cp vfs/proto.h /usr/src/servers/vfs/proto.h
+### add source code
 cp vfs/slugread.c /usr/src/servers/vfs/slugread.c
-
-# add previous file to ``/usr/src/servers/vfs/Makefile''
+### add filename to vfs Makefile
 cp vfs/Makefile /usr/src/servers/vfs/Makefile
+
+
+
+# define function in MINIX mfs
+cp include/minix/vfsif.h /usr/src/include/minix/vfsif.h
+cp mfs/table.c /usr/src/servers/mfs/table.c
+cp mfs/proto.h /usr/src/servers/mfs/proto.h
+cp mfs/slug_mfs.c /usr/src/servers/mfs/slug_mfs.c
+cp mfs/Makefile /usr/src/servers/mfs/Makefile
+cp mfs/read.c /usr/src/servers/mfs/read.c
+
 
 
 
 ##   Go to the top-level directory and recompile   ##
 #####################################################
+
 cd /usr/src/releasetools
+make hdboot
+
+cd /usr/src/lib
+make
 make install
+
+#pass flag metaread/metawrite
+#
+
