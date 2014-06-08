@@ -136,7 +136,7 @@ int slug_read_write(int rw_flag, struct filp *f, char *buf, size_t size,
 	}
 
 	/* Issue request asdfasdf */
-	r = req_readwrite(vp->v_fs_e, vp->v_inode_nr, position, rw_flag, for_e,
+	r = req_slugreadwrite(vp->v_fs_e, vp->v_inode_nr, position, rw_flag, for_e,
 			  buf, size, &new_pos, &cum_io_incr);
 
 	if (r >= 0) {

@@ -53,10 +53,11 @@ unsigned int *cum_iop;
     panic("req_slugreadwrite: cpf_grant_magic failed");
 
 
-  printf("req_slugreadwrite, rw_flag = %d", rw_flag);
   /* Fill in request message */
   m.m_type = rw_flag == READING ? REQ_SLUGREAD : REQ_WRITE; /*Where are these?????? -Tyler */
 
+  printf("req_slugreadwrite, rw_flag = %d", rw_flag);
+  
   m.REQ_INODE_NR = inode_nr;
   m.REQ_GRANT = grant_id;
   m.REQ_SEEK_POS_LO = ex64lo(pos);

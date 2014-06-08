@@ -53,6 +53,9 @@ int fs_readwrite(void)
   }
 
   /* Get the values from the request message */ 
+  if (fs_m_in.m_type == REQ_SLUGREAD) {
+    printf("erhmahergherd\n");
+  }
   rw_flag = (fs_m_in.m_type == REQ_READ ? READING : WRITING);
   gid = (cp_grant_id_t) fs_m_in.REQ_GRANT;
   position = (off_t) fs_m_in.REQ_SEEK_POS_LO;
