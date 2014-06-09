@@ -216,6 +216,9 @@ int read_write(int rw_flag, struct filp *f, char *buffer, size_t nbytes,
 int rw_pipe(int rw_flag, endpoint_t usr, struct filp *f, char *buf,
 	size_t req_size);
 
+/* slugwrite.c */
+int do_slugwrite(void);
+
 /* slugread.c */
 int do_slugread(void);
 int do_slug_read_write(int rw_flag);

@@ -1,5 +1,6 @@
 
 #include <slug_library.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <stdio.h> 
 
@@ -17,8 +18,8 @@ int main(int argc, char** args)
 	} else {
 		fd = fileno(read_file);
  		char buffer[BUFFER_LEN + 1];
-		slugread(fd, buffer, 400); 
-		printf("slug_libread2 worked\n"); 
+		slugread(fd, buffer, 120); 
+		printf("%s\n", buffer);
 	}
  
  return 0; 

@@ -68,6 +68,7 @@
 
 /* slug_libread */
 #define SLUGREAD  69
+#define SLUGWRITE  70
 
 /* Posix signal handling. */
 #define SIGACTION	  71

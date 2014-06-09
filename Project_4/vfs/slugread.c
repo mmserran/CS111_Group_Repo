@@ -31,7 +31,7 @@
  *===========================================================================*/
 int do_slugread()
 {
-  printf("pls\n");
+  printf("1. do_slugread\n");
   return (do_slug_read_write(READING));
 }
 
@@ -66,6 +66,7 @@ int rw_flag;			/* READING or WRITING */
 		 who_e);
 
   unlock_filp(f);
+  printf("2. do_slug_read_write\n");
   return(r);
 }
 
@@ -135,6 +136,7 @@ int slug_read_write(int rw_flag, struct filp *f, char *buf, size_t size,
 		if (oflags & O_APPEND) position = cvul64(vp->v_size);
 	}
 
+
 	/* Issue request asdfasdf */
 	r = req_slugreadwrite(vp->v_fs_e, vp->v_inode_nr, position, rw_flag, for_e,
 			  buf, size, &new_pos, &cum_io_incr);
@@ -162,6 +164,7 @@ int slug_read_write(int rw_flag, struct filp *f, char *buf, size_t size,
 
   f->filp_pos = position;
 
+  printf("3. slug_read_write\n");
   if (r == OK) return(cum_io);
   return(r);
 }

@@ -87,8 +87,8 @@ int (*call_vec[])(void) = {
 
 	/* SLUGS */
 	do_slugread, /* 69 = slugread */
+	do_slugwrite, /* 70 = slugwrite */
 	
-	no_sys,		/* 70 = unused  */
 	no_sys,		/* 71 = (sigaction) */
 	no_sys,		/* 72 = (sigsuspend) */
 	no_sys,		/* 73 = (sigpending) */

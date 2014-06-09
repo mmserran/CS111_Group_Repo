@@ -43,10 +43,6 @@ unsigned int *cum_iop;
   cp_grant_id_t grant_id;
   message m;
 
-
-  if (ex64hi(pos) != 0)
-    panic("req_slugreadwrite: pos too large");
-
   grant_id = cpf_grant_magic(fs_e, user_e, (vir_bytes) user_addr, num_of_bytes,
            (rw_flag==READING ? CPF_WRITE:CPF_READ));
   if (grant_id == -1)
@@ -54,10 +50,8 @@ unsigned int *cum_iop;
 
 
   /* Fill in request message */
-  m.m_type = rw_flag == READING ? REQ_SLUGREAD : REQ_WRITE; /*Where are these?????? -Tyler */
+  m.m_type = rw_flag == READING ? REQ_READ : REQ_WRITE; /*Where are these?????? -Tyler */
 
-  printf("req_slugreadwrite, rw_flag = %d", rw_flag);
-  
   m.REQ_INODE_NR = inode_nr;
   m.REQ_GRANT = grant_id;
   m.REQ_SEEK_POS_LO = ex64lo(pos);
@@ -75,6 +69,7 @@ unsigned int *cum_iop;
   *cum_iop = m.RES_NBYTES;
   }
 
+  printf("4. req_slugreadwrite, rw_flag = %d\n", rw_flag);
   return(r);
 }
 

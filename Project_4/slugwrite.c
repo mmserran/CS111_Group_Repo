@@ -10,10 +10,10 @@
 
 
 /*===========================================================================*
- *				do_write				     *
+ *				do_slugwrite				     *
  *===========================================================================*/
-int do_write()
+int do_slugwrite()
 {
 /* Perform the write(fd, buffer, nbytes) system call. */
-  return(do_read_write(WRITING));
+  return(do_slug_read_write(WRITING));
 }

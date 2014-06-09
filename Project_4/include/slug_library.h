@@ -4,5 +4,6 @@
 #include <sys/types.h>
 
 ssize_t slugread(int, void *, size_t);
+ssize_t slugwrite(int, void *, size_t);
 
 #endif
